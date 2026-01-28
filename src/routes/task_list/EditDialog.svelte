@@ -1,25 +1,47 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { enhance } from '$app/forms';
-  import type { Task } from '$lib/server/task_db';
+  import { createEventDispatcher } from "svelte";
+  import { enhance } from "$app/forms";
+  import type { Task } from "$lib/server/task_db";
 
   // SMUI Components
-  import Button from '@smui/button';
-  import Dialog, { Title, Content, Actions } from '@smui/dialog';
-  import TextField from '@smui/textfield';
+  import Button from "@smui/button";
+  import Dialog, { Title, Content, Actions } from "@smui/dialog";
+  import TextField from "@smui/textfield";
 
   export let open = false;
   export let task: Task | null = null;
 
-  const dispatch = createEventDispatcher<{success: string;}>();
+  const dispatch = createEventDispatcher<{ success: string }>();
 
   // YYYY-MM-DD形式にするヘルパー
   // 引数としてstringの場合があるかもしれない。
   function formatDateForInput(dateInput: Date | string): string {
-    if (!dateInput) return '';
+    if (!dateInput) return "";
     const d = new Date(dateInput);
-    return d.toISOString().split('T')[0];
+    return d.toISOString().split("T")[0];
   }
+
+  let title = "";
+  let dateStr = "";
+  let description = "";
+  let done = false;
+  let prevOpen = false;
+
+  let isInitialized = false;
+  $: if (!open) {
+    isInitialized = false;
+  }
+
+  $: if (open && task && !isInitialized) {
+    isInitialized = true;
+    title = task.title;
+    dateStr = formatDateForInput(task.date);
+    description = task.description;
+    done = task.done;
+  }
+
+  // ダイアログが開かれ、まだ初期化されていない場合に値をセット                                                                                                                                         │
+  $: prevOpen = open;
 </script>
 
 <Dialog bind:open>
@@ -32,23 +54,23 @@
         method="POST"
         use:enhance={() => {
           return async ({ result, update }) => {
-            if (result.type === 'success') {
+            if (result.type === "success") {
               await update(); // 画面更新
               open = false;
-              dispatch('success', 'タスクを更新しました');
+              dispatch("success", "タスクを更新しました");
             }
           };
         }}
       >
         <input type="hidden" name="id" value={task.id} />
-        
+
         <div class="checkbox-area">
           <label>
             <input
               type="checkbox"
               name="done"
               value="true"
-              checked={task.done}
+              checked={done}
             />
             完了済み
           </label>
@@ -59,7 +81,7 @@
             variant="outlined"
             label="タイトル"
             input$name="title"
-            value={task.title}
+            bind:value={title}
             required
             style="width: 100%; margin-top: 1rem;"
           />
@@ -68,7 +90,7 @@
             label="期限"
             type="date"
             input$name="date"
-            value={formatDateForInput(task.date)}
+            bind:value={dateStr}
             style="width: 100%; margin-top: 1rem;"
           />
           <TextField
@@ -76,7 +98,7 @@
             label="説明"
             textarea
             input$name="description"
-            value={task.description}
+            bind:value={description}
             style="width: 100%; margin-top: 1rem;"
           />
         </div>
