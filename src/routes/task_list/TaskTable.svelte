@@ -103,6 +103,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    /* ← 追加 inline-block が縦方向の基準線（baseline）をずらしているのを修正する*/
+    vertical-align: middle;
   }
 
   .task-done {

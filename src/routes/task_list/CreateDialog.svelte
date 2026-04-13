@@ -1,21 +1,31 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import { enhance } from '$app/forms';
-  
+  import { createEventDispatcher } from "svelte";
+  import { enhance } from "$app/forms";
+
   // SMUI Components
-  import Button from '@smui/button';
-  import Dialog, { Title, Content, Actions } from '@smui/dialog';
-  import TextField from '@smui/textfield';
+  import Button from "@smui/button";
+  import Dialog, { Title, Content, Actions } from "@smui/dialog";
+  import TextField from "@smui/textfield";
 
-  export let open = false;
+  let open = false;
 
-  const dispatch = createEventDispatcher<{success: string;}>();
-  
-  let title = '';
+  const dispatch = createEventDispatcher<{ success: string }>();
+
+  let title = "";
   // dateの初期値として今日の日付(YYYY-MM-DD)を設定
-  let date = new Date().toISOString().split('T')[0];
-  let description = '';
+  let date = new Date().toISOString().split("T")[0];
+  let description = "";
 
+  export function show() {
+    title = "";
+    date = new Date().toISOString().split("T")[0];
+    description = "";
+    open = true;
+  }
+
+  function close() {
+    open = false;
+  }
 </script>
 
 <Dialog bind:open>
@@ -27,15 +37,17 @@
       method="POST"
       use:enhance={() => {
         return async ({ result, update }) => {
-          if (result.type === 'success') {
+          if (result.type === "success") {
             await update(); // 画面更新
-            open = false;
-            dispatch('success', 'タスクを作成しました');
+            close();
+            dispatch("success", "タスクを作成しました");
             // フォームをリセット
             // これをしないと、テキストボックスの線がおかしくなる。
-            title = '';
-            date = new Date().toISOString().split('T')[0];
-            description = '';
+            //  ↓↓↓
+            // 一旦コメントアウトした。もしあとでおかしくなったら、復活させる。
+            // title = "";
+            // date = new Date().toISOString().split("T")[0];
+            // description = "";
           }
         };
       }}
@@ -70,7 +82,7 @@
     </form>
   </Content>
   <Actions>
-    <Button on:click={() => (open = false)}>キャンセル</Button>
+    <Button on:click={() => close()}>キャンセル</Button>
     <Button type="submit" form="create-form" variant="raised">作成</Button>
   </Actions>
 </Dialog>
@@ -79,5 +91,4 @@
   .form-grid {
     padding: 1rem 0;
   }
-  
 </style>
